@@ -1,0 +1,15 @@
+{
+    "research_topic": "Counterfactual Cyber Attack Reasoning Framework for Defense Prioritization Using Open Cyber Knowledge Graphs",
+
+    "search_strings": [
+        "(cybersecurity OR \"cyber attack\") AND (\"attack graph\" OR \"attack path\")",
+        "(counterfactual OR \"counterfactual reasoning\") AND (cybersecurity OR \"cyber attack\")",
+        "(cybersecurity OR \"cyber attack\") AND (\"knowledge graph\" OR \"cyber knowledge graph\")",
+        "(\"attack path\" OR \"attack graph\") AND (\"defense prioritization\" OR \"security prioritization\")",
+        "(vulnerability OR CVE) AND (\"attack path\" OR \"attack graph\") AND (prioritization OR ranking)"
+    ],
+
+    "headless": false,
+
+    "max_results_per_query": 100
+}

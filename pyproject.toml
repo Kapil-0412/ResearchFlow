@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "researchflow"
+version = "0.1.0"
+description = "Open-source research paper discovery, relevance analysis, screening, and legitimate PDF management tool."
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
