@@ -5,6 +5,10 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
+
+# Python package metadata
+*.egg-info/
 
 # ==============================
 # Virtual Environment

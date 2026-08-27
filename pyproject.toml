@@ -8,7 +8,21 @@ version = "0.1.0"
 description = "Open-source research paper discovery, relevance analysis, screening, and legitimate PDF management tool."
 readme = "README.md"
 requires-python = ">=3.12"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
+
+dependencies = [
+    "requests",
+    "httpx",
+    "pandas",
+    "pydantic",
+    "python-dotenv",
+    "tqdm"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
