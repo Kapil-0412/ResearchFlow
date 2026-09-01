@@ -1,8 +1,7 @@
 from collections.abc import Iterator
 from typing import Any
 
-import httpx
-
+from researchflow.http import HTTPClient
 from researchflow.models import Paper
 from researchflow.processing import normalize_paper
 from researchflow.sources.base import PaperSource
@@ -21,9 +20,17 @@ class OpenAlexSource(PaperSource):
         *,
         mailto: str | None = None,
         timeout: float = 30.0,
+        max_retries: int = 3,
+        backoff_factor: float = 1.0,
     ):
         self.mailto = mailto
         self.timeout = timeout
+
+        self.http_client = HTTPClient(
+            timeout=timeout,
+            max_retries=max_retries,
+            backoff_factor=backoff_factor,
+        )
 
     def search(
         self,
@@ -36,42 +43,51 @@ class OpenAlexSource(PaperSource):
         if max_results <= 0:
             return
 
+        per_page = min(max_results, 100)
+
         params: dict[str, Any] = {
             "search": query,
-            "per-page": min(max_results, 100),
+            "per-page": per_page,
             "page": 1,
         }
 
         if self.mailto:
             params["mailto"] = self.mailto
 
-        with httpx.Client(timeout=self.timeout) as client:
-            while True:
-                response = client.get(
+        collected = 0
+
+        with self.http_client:
+            while collected < max_results:
+                response = self.http_client.get(
                     OPENALEX_API_URL,
                     params=params,
                 )
 
-                response.raise_for_status()
-
                 data = response.json()
 
-                results = data.get("results", [])
+                results = data.get(
+                    "results",
+                    [],
+                )
 
                 if not results:
                     break
 
                 for result in results:
+                    if collected >= max_results:
+                        return
+
                     yield self._parse_result(
                         result,
                         query=query,
                     )
 
-                    if (
-                        params["page"] * params["per-page"]
-                        >= max_results
-                    ):
-                        return
+                    collected += 1
+
+                # If OpenAlex returned fewer results than requested,
+                # there are no more results on the next page.
+                if len(results) < per_page:
+                    break
 
                 params["page"] += 1
 
@@ -85,8 +101,14 @@ class OpenAlexSource(PaperSource):
 
         authors = []
 
-        for authorship in result.get("authorships", []):
-            author = authorship.get("author", {})
+        for authorship in result.get(
+            "authorships",
+            [],
+        ):
+            author = authorship.get(
+                "author",
+                {},
+            )
 
             if author:
                 authors.append(
@@ -105,27 +127,56 @@ class OpenAlexSource(PaperSource):
             "landing_page_url"
         )
 
-        pdf_url = (
-            primary_location
-            .get("pdf_url")
-            or {}
-        ).get("url")
+        # OpenAlex may return pdf_url as either:
+        # 1. a dictionary: {"url": "..."}
+        # 2. a string: "https://..."
+        # 3. None
+        pdf_data = primary_location.get(
+            "pdf_url"
+        )
+
+        if isinstance(pdf_data, dict):
+            pdf_url = pdf_data.get(
+                "url"
+            )
+        elif isinstance(pdf_data, str):
+            pdf_url = pdf_data
+        else:
+            pdf_url = None
 
         return normalize_paper(
-            paper_id=result.get("id", ""),
-            title=result.get("title"),
+            paper_id=result.get(
+                "id",
+                "",
+            ),
+            title=result.get(
+                "title"
+            ),
             authors=authors,
             abstract=self._reconstruct_abstract(
-                result.get("abstract_inverted_index")
+                result.get(
+                    "abstract_inverted_index"
+                )
             ),
             keywords=[
-                keyword.get("display_name")
-                for keyword in result.get("keywords", [])
-                if keyword.get("display_name")
+                keyword.get(
+                    "display_name"
+                )
+                for keyword in result.get(
+                    "keywords",
+                    [],
+                )
+                if keyword.get(
+                    "display_name"
+                )
             ],
-            year=result.get("publication_year"),
+            year=result.get(
+                "publication_year"
+            ),
             source=self.name,
-            doi=result.get("doi"),
+            doi=result.get(
+                "doi"
+            ),
             paper_url=landing_page_url,
             pdf_url=pdf_url,
             search_query=query,
@@ -144,9 +195,16 @@ class OpenAlexSource(PaperSource):
 
         for word, positions in inverted_index.items():
             for position in positions:
-                words.append((position, word))
+                words.append(
+                    (
+                        position,
+                        word,
+                    )
+                )
 
-        words.sort(key=lambda item: item[0])
+        words.sort(
+            key=lambda item: item[0]
+        )
 
         return " ".join(
             word
