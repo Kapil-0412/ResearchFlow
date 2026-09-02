@@ -19,6 +19,9 @@ dependencies = [
     "tqdm"
 ]
 
+[project.scripts]
+researchflow = "researchflow.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest"
