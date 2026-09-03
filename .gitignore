@@ -5,13 +5,17 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
+
+# Python package metadata
+*.egg-info/
 
 # ==============================
 # Virtual Environment
 # ==============================
 
-.venv/
 venv/
+.venv/
 env/
 
 # ==============================
@@ -21,7 +25,7 @@ env/
 .env
 
 # ==============================
-# Generated Data
+# Generated Research Data
 # ==============================
 
 data/
@@ -32,10 +36,11 @@ debug/
 temp/
 
 # ==============================
-# Local Configuration
+# Checkpoints
 # ==============================
 
-config/settings.json
+checkpoints.json
+data/checkpoints.json
 
 # ==============================
 # IDE
@@ -51,6 +56,7 @@ config/settings.json
 .pytest_cache/
 .mypy_cache/
 .coverage
+htmlcov/
 
 # ==============================
 # OS
@@ -58,3 +64,9 @@ config/settings.json
 
 .DS_Store
 Thumbs.db
+
+# ==============================
+# Local Configuration
+# ==============================
+
+config/settings.json

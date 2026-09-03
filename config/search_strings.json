@@ -9,7 +9,7 @@
         "(vulnerability OR CVE) AND (\"attack path\" OR \"attack graph\") AND (prioritization OR ranking)"
     ],
 
-    "headless": false,
+    "max_results_per_query": 100,
 
-    "max_results_per_query": 100
+    "headless": false
 }
